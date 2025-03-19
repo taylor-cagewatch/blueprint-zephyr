@@ -1,5 +1,15 @@
 # 1NCE Zephyr blueprint
 
+![Pre-Release](https://img.shields.io/badge/version-beta-orange)
+
+## 🚀 Pre-Release Information
+This repository contains an official release in the [main](https://github.com/1NCE-GmbH/blueprint-zephyr) branch and a pre-release version in the branch.
+
+## ⚠️ Important Notes
+The pre-release branch contains unstable and testing features that are not yet finalized.
+This version is intended for early adopters, testers, and market trials.
+Bugs and issues may exist. Please report any problems [here](https://github.com/1NCE-GmbH/blueprint-zephyr/issues/new/choose).
+
 ## Overview
 
 The Zephyr Project is a scalable real-time operating system (RTOS) supporting multiple hardware architectures, optimized for resource constrained devices, and built with security in mind.
@@ -22,8 +32,7 @@ Follow this guide to:
 * Build, flash, and run Secure CoAP Application.
 
 ### Prerequisites
-* For Memfault demo: [nRF Connect SDK (v2.8.0)](https://docs.nordicsemi.com/bundle/ncs-2.8.0/page/nrf/gsg_guides.html)
-* For Other demos: [nRF Connect SDK (v2.2.0)](https://developer.nordicsemi.com/nRF_Connect_SDK/doc/2.2.0/nrf/gs_assistant.html)
+* [nRF Connect SDK (v2.8.0)](https://docs.nordicsemi.com/bundle/ncs-2.8.0/page/nrf/installation/install_ncs.html)
 * [VS Code)](https://code.visualstudio.com/)
 * [West](https://docs.zephyrproject.org/3.1.0/develop/west/install.html)
 
@@ -37,9 +46,9 @@ Quick Setup `VS Code`
 NOTE: It is recommended to extract the Zephyr SDK at `%HOMEPATH%`
 
 * Open the `west.yml`
-`%HOMEPATH%\ncs\v2.2.0\nrf\west.yml`
+`%HOMEPATH%\ncs\v2.8.0\nrf\west.yml`
 * Add in `name-allowlist` name of our sdk module `nce-sdk` (NOTE: the list with alphabetical order).
-*  Go to `%HOMEPATH%\ncs\v2.2.0\zephyr\submanifests` rename `example.yaml.sample` to `example.yaml` and paste the following code on it.
+*  Go to `%HOMEPATH%\ncs\v2.8.0\zephyr\submanifests` rename `example.yaml.sample` to `example.yaml` and paste the following code on it.
 ```
 manifest:
 	projects:
@@ -49,7 +58,7 @@ manifest:
 ```
 * Open a `cmd.exe` window by pressing the Windows key typing “cmd.exe”
 ```
-cd %HOMEPATH%\ncs\v2.2.0
+cd %HOMEPATH%\ncs\v2.8.0
 west update
 ```
 ## Running the 1NCE Zephyr blueprint
