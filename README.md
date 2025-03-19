@@ -6,9 +6,10 @@
 This repository contains an official release in the [main](https://github.com/1NCE-GmbH/blueprint-zephyr) branch and a pre-release version in the branch.
 
 ## ⚠️ Important Notes
-The pre-release branch contains unstable and testing features that are not yet finalized.
-This version is intended for early adopters, testers, and market trials.
-Bugs and issues may exist. Please report any problems [here](https://github.com/1NCE-GmbH/blueprint-zephyr/issues/new/choose).
+
+* The pre-release branch contains unstable and testing features that are not yet finalized.
+* This version is intended for early adopters, testers, and market trials.
+* Bugs and issues may exist. Please report any problems [here](https://github.com/1NCE-GmbH/blueprint-zephyr/issues/new/choose).
 
 ## Overview
 
