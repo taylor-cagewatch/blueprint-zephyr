@@ -15,7 +15,7 @@
 #define SEC_TAG (TLS_SEC_TAG)
 #endif
 
-void modem_configure(void);
+int modem_configure_and_connect(void);
 
 int button_init(void);
 

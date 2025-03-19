@@ -174,7 +174,7 @@ struct download_client {
 	/** Ensure that thread is ready for download */
 	struct k_sem wait_for_download;
 	/* Internal thread stack. */
-	K_THREAD_STACK_MEMBER(thread_stack,
+	K_KERNEL_STACK_MEMBER(thread_stack,
 			      CONFIG_CUSTOM_DOWNLOAD_CLIENT_STACK_SIZE);
 
 	/** Event handler. */

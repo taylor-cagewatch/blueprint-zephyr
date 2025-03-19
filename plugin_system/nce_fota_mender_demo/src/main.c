@@ -23,14 +23,14 @@ static void fota_dl_handler(const struct fota_download_evt *evt)
 {
 	switch (evt->id) {
 	case CUSTOM_FOTA_DOWNLOAD_EVT_ERROR:
-		printk("Received error from fota_download\n");
+		printk("[INF] Received error from fota_download\n");
 		if(evt->cause == CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_INVALID_UPDATE ){
-			printk("Invalid Update\n");
+			printk("[ERR] Invalid Update\n");
 			fota_stop(0);
 		}
 		else
 		{
-			printk("Download Error\n");
+			printk("[ERR] Download Error\n");
 			fota_stop(1);
 		}
 		
@@ -38,7 +38,7 @@ static void fota_dl_handler(const struct fota_download_evt *evt)
 
 	case CUSTOM_FOTA_DOWNLOAD_EVT_FINISHED:
 
-		printk("Firmware Downloaded. Rebooting in 15 seconds to apply new firmware\n");
+		printk("[iNF] Firmware Downloaded. Rebooting in 15 seconds to apply new firmware\n");
 		fota_done();
 		break;
 
@@ -51,18 +51,19 @@ void main(void)
 {
 	int err,i=0;
 
-	printk("1NCE FOTA Mender demo started\n");
+	printk("[INF] 1NCE FOTA Mender demo started\n");
 	long_led_pattern(LED_CONNECTING);
-	err = nrf_modem_lib_init(NORMAL_MODE);
+	err = nrf_modem_lib_init();
 	if (err) {
-		printk("Failed to initialize modem library!");
+		printk("[ERR] Failed to initialize modem library!");
 		return;
 	}
+	printk("boot_write_img_confirmed() \n");
 	boot_write_img_confirmed();
-	printk("custom_fota_download_init() \n");
+	printk("[INF] custom_fota_download_init() \n");
 	err = custom_fota_download_init(fota_dl_handler);
 	if (err != 0) {
-		printk("custom_fota_download_init() failed, err %d\n", err);
+		printk("[ERR] custom_fota_download_init() failed, err %d\n", err);
 		return;
 	}
 
@@ -72,7 +73,7 @@ void main(void)
 					.update_start = fota_start,
 				});
 	if (err != 0) {
-		printk("fota_init() failed, err %d\n", err);
+		printk("[ERR] fota_init() failed, err %d\n", err);
 		long_led_pattern(LED_FAILURE);
 		return;
 	} else {

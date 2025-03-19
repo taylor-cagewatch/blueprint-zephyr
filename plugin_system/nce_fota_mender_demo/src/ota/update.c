@@ -26,8 +26,28 @@
 
 
 static const struct gpio_dt_spec sw0 = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
+static K_SEM_DEFINE(lte_connected_sem, 0, 1);
+/**
+ * @brief Handler for LTE link control events
+ */
+static void lte_lc_handler(const struct lte_lc_evt *const evt)
+{	switch (evt->type)
+	{
+	case LTE_LC_EVT_NW_REG_STATUS:
+		if ((evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_HOME) &&
+			(evt->nw_reg_status != LTE_LC_NW_REG_REGISTERED_ROAMING))
+		{
+			break;
+		}
 
-
+		printk("Network registration status: %s\n",
+			   evt->nw_reg_status == LTE_LC_NW_REG_REGISTERED_HOME ? "Connected - home" : "Connected - roaming");
+		k_sem_give(&lte_connected_sem);
+		break;
+	default:
+		break;
+	}
+}
 /* static function declaration */
 static void dfu_button_pressed(const struct device *gpiob, struct gpio_callback *cb, uint32_t pins);
 
@@ -46,7 +66,7 @@ int cert_provision(void)
 	err = modem_key_mgmt_exists(TLS_SEC_TAG,
 				    MODEM_KEY_MGMT_CRED_TYPE_CA_CHAIN, &exists);
 	if (err) {
-		printk("Failed to check for certificates err %d\n", err);
+		printk("[ERR] Failed to check for certificates err %d\n", err);
 		return err;
 	}
 
@@ -57,19 +77,19 @@ int cert_provision(void)
 		err = modem_key_mgmt_delete(TLS_SEC_TAG,
 					    MODEM_KEY_MGMT_CRED_TYPE_CA_CHAIN);
 		if (err) {
-			printk("Failed to delete existing certificate, err %d\n",
+			printk("[ERR] Failed to delete existing certificate, err %d\n",
 			       err);
 		}
 	}
 
-	printk("Provisioning certificate\n");
+	printk("[INF] Provisioning certificate\n");
 
 	/*  Provision certificate to the modem */
 	err = modem_key_mgmt_write(TLS_SEC_TAG,
 				   MODEM_KEY_MGMT_CRED_TYPE_CA_CHAIN, cert,
 				   sizeof(cert) - 1);
 	if (err) {
-		printk("Failed to provision certificate, err %d\n", err);
+		printk("[ERR] Failed to provision certificate, err %d\n", err);
 		return err;
 	}
 
@@ -81,7 +101,7 @@ int button_init(void)
 	int err;
 
 	if (!device_is_ready(sw0.port)) {
-		printk("SW0 GPIO port device not ready\n");
+		printk("[ERR] SW0 GPIO port device not ready\n");
 		return -ENODEV;
 	}
 
@@ -94,7 +114,7 @@ int button_init(void)
 
 	err = gpio_add_callback(sw0.port, &sw0_cb);
 	if (err < 0) {
-		printk("Unable to configure SW0 GPIO pin!\n");
+		printk("[ERR] Unable to configure SW0 GPIO pin!\n");
 		return err;
 	}
 
@@ -115,25 +135,30 @@ static void dfu_button_pressed(const struct device *gpiob, struct gpio_callback 
 	button_irq_disable();
 }
 
-/**@brief Configures modem to provide LTE link.
- *
- * Blocks until link is successfully established.
+/**
+ * @brief Configures modem to provide LTE link.
  */
- void modem_configure(void)
+int modem_configure_and_connect(void)
 {
-#if defined(CONFIG_LTE_LINK_CONTROL)
-	BUILD_ASSERT(!IS_ENABLED(CONFIG_LTE_AUTO_INIT_AND_CONNECT),
-			"This sample does not support auto init and connect");
 	int err;
+
 #if defined(CONFIG_USE_HTTPS)
 	err = cert_provision();
-	__ASSERT(err == 0, "Could not provision root CA to %d", TLS_SEC_TAG);
-#endif    
+	if (err) {
+		printk("Could not provision root CA to %d", TLS_SEC_TAG);
+		return err;
+	}
+
+#endif /* CONFIG_USE_HTTPS */
+
 	printk("LTE Link Connecting ...\n");
-	err = lte_lc_init_and_connect();
-	__ASSERT(err == 0, "LTE link could not be established.");
-	printk("LTE Link Connected!\n");
-#endif
+	err = lte_lc_connect_async(lte_lc_handler);
+	if (err) {
+		printk("LTE link could not be established.");
+		return err;
+	}
+	k_sem_take(&lte_connected_sem, K_FOREVER);
+	return 0;
 }
 
 static int shell_download(const struct shell *shell, size_t argc, char **argv)

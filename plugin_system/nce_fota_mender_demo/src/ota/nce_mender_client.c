@@ -25,7 +25,7 @@
 #include <modem/modem_key_mgmt.h>
 #include <modem/modem_info.h>
 #include <nce_iot_c_sdk.h>
-#include <udp_interface_zephyr.h>
+#include <network_interface_zephyr.h>
 #include <modem/nrf_modem_lib.h>
 #include <zephyr/net/coap.h>
 #include "update.h"
@@ -253,10 +253,10 @@ static int connect_to_coap_server(int fd,char *hostname, int port){
         os_network_ops_t osNetwork =
         {
             .os_socket             = &xOSNetwork,
-            .nce_os_udp_connect    = nce_os_udp_connect,
-            .nce_os_udp_send       = nce_os_udp_send,
-            .nce_os_udp_recv       = nce_os_udp_recv,
-            .nce_os_udp_disconnect = nce_os_udp_disconnect
+            .nce_os_udp_connect    = nce_os_connect,
+            .nce_os_udp_send       = nce_os_send,
+            .nce_os_udp_recv       = nce_os_recv,
+            .nce_os_udp_disconnect = nce_os_disconnect
         };
 
         /* Get DTLS Credentials using 1NCE SDK from the Device Authenticator */
@@ -680,12 +680,12 @@ static void nce_mender_work_fn( struct k_work * work )
 
 /* Connect to Mender via 1NCE CoAP proxy using DTLS and check active deployment status from NVS (if exists)  */ 
 void nce_mender_application(){
-    printk("[INF]1NCE CoAP client sample started\n\r" );
-    printk("[INF]OK\n" );
+    printk("[INF] 1NCE CoAP client sample started\n\r" );
+    printk("[INF] OK\n" );
     int response_code=0;
     err = connect_to_coap_server(mender_socket,CONFIG_COAP_SERVER_HOSTNAME, CONFIG_COAP_SERVER_PORT);
     if (err) {
-        printk("[ERR]Failed to connect to CoAP server, err %d\n", err);
+        printk("[ERR] Failed to connect to CoAP server, err %d\n", err);
         return;
     }
 
@@ -693,14 +693,14 @@ void nce_mender_application(){
     rc = nvs_read(&fs, DEPLOYMENT_ID, &nvs_deployment_id, sizeof(nvs_deployment_id));
     rc = nvs_read(&fs, ARTIFACT_NAME_ID, &nvs_artifact_name, sizeof(nvs_deployment_id));
 	if (rc > 0 && strlen(nvs_deployment_id) > 1 && strlen(nvs_artifact_name) > 1) { 
-		printk("Active deployment found at ID (%s)\n",
+		printk("[INF] Active deployment found at ID (%s)\n",
 			 nvs_deployment_id);
         int cmp = strcmp(nvs_artifact_name, CONFIG_ARTIFACT_NAME);
         if (cmp == 0) { 
-        	printk("Artifact (%s) is installed, reporting success...\n",nvs_artifact_name);
+        	printk("[INF] Artifact (%s) is installed, reporting success...\n",nvs_artifact_name);
             response_code = nce_mender_report_status(mender_socket, request, &response,STATUS_SUCCESS,true);
         } else  {
-        	printk("Artifact (%s) installation failed, device recovered to (%s), reporting failure...\n",nvs_artifact_name,CONFIG_ARTIFACT_NAME);
+        	printk("[INF] Artifact (%s) installation failed, device recovered to (%s), reporting failure...\n",nvs_artifact_name,CONFIG_ARTIFACT_NAME);
             response_code = nce_mender_report_status(mender_socket, request, &response,STATUS_FAILURE,true);
             long_led_pattern(LED_FAILURE);
             k_sleep(K_SECONDS(10));    
@@ -709,7 +709,7 @@ void nce_mender_application(){
         (void)nvs_delete(&fs, DEPLOYMENT_ID);
         (void)nvs_delete(&fs, ARTIFACT_NAME_ID);
 	} else   {
-		printk("No Active Deployment, %d\n",strlen(nvs_deployment_id) );
+		printk("[ERR] No Active Deployment, %d\n",strlen(nvs_deployment_id) );
 	}
 
     k_work_schedule( &nce_mender_work, K_NO_WAIT );
@@ -728,13 +728,13 @@ int fota_init(struct fota_init_params *params)
 
     fs.flash_device = NVS_PARTITION_DEVICE;
 	if (!device_is_ready(fs.flash_device)) {
-		printk("Flash device %s is not ready\n", fs.flash_device->name);
+		printk("[WARN] Flash device %s is not ready\n", fs.flash_device->name);
 		return -EIO;
 	}
 	fs.offset = NVS_PARTITION_OFFSET;
 	rc = flash_get_page_info_by_offs(fs.flash_device, fs.offset, &info);
 	if (rc) {
-		printk("Unable to get page info\n");
+		printk("[ERR] Unable to get page info\n");
 		return -EIO;
 	}
 	fs.sector_size = info.size;
@@ -742,20 +742,20 @@ int fota_init(struct fota_init_params *params)
 
 	rc = nvs_mount(&fs);
 	if (rc) {
-		printk("Flash Init failed\n");
+		printk("[ERR] Flash Init failed\n");
 		return -EIO;
 	}
 
 	err = modem_info_init();
 	if (err < 0) {
-		printk("Unable to init modem_info, error: (%d)", err);
+		printk("[ERR] Unable to init modem_info, error: (%d)", err);
 	}
 
     k_work_init_delayable( &nce_mender_work,
                            nce_mender_work_fn );
 	update_start = params->update_start;
 
-	modem_configure();
+	modem_configure_and_connect();
 
 	err = button_init();
 	if (err != 0) {
@@ -774,13 +774,13 @@ void fota_start(void)
 	int err;
     long_led_pattern(LED_WAITING);
 	/* Functions for getting the host and file */
-    printk("fota_download_start() \n");
+    printk("[INF] fota_download_start() \n");
     device_status = UPDATE_DOWNLOADING;
 	err = fota_download_start(uri, filename, SEC_TAG, 0, 0);
 	if (err != 0) {
         device_status = INV_UPDATED;
 		fota_stop(1);
-		printk("fota_download_start() failed, err %d\n", err);
+		printk("[ERR] fota_download_start() failed, err %d\n", err);
 	}
 }
 
@@ -810,18 +810,17 @@ void fota_done(void)
     strcpy(nvs_deployment_id, id);
 	(void)nvs_write(&fs, DEPLOYMENT_ID, &nvs_deployment_id,
 			  sizeof(nvs_deployment_id));
-	printk("Stored deployment ID (%s) at %d ...\n",
+	printk("[INF] Stored deployment ID (%s) at %d ...\n",
 			nvs_deployment_id,DEPLOYMENT_ID);
     strcpy(nvs_artifact_name, artifact_name);
 	(void)nvs_write(&fs, ARTIFACT_NAME_ID, &nvs_artifact_name,
 			  sizeof(nvs_artifact_name));
-	printk("Stored artifact name (%s) at %d ...\n",
+	printk("[INF] Stored artifact name (%s) at %d ...\n",
 			nvs_artifact_name,ARTIFACT_NAME_ID);
 
     k_sleep(K_SECONDS(10));
     /* Report Rebooting status to Mender */
     response_code = nce_mender_report_status(mender_socket, request, &response,STATUS_REBOOTING,false);
-	lte_lc_deinit();
     /* Reboot */
 	sys_reboot(SYS_REBOOT_WARM);
 
