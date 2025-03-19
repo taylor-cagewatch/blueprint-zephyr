@@ -47,7 +47,7 @@ The configuration options for CoAP sample are:
 
 `CONFIG_PAYLOAD` Message to send to 1NCE IoT Integrator.
 
-`CONFIG_PAYLOAD_DATA_SIZE` Used when 1NCE Energy Saver is enabled to define the payload data size of the translation template.
+`CONFIG_NCE_PAYLOAD_DATA_SIZE` Used when 1NCE Energy Saver is enabled to define the payload data size of the translation template.
 
 ## Device Controller
 The Device Controller is an API that allows you to interact with devices integrated into the 1NCE API. You can use this API to send requests to devices, and the devices will respond accordingly. For more details you can visit our [DevHub](https://help.1nce.com/dev-hub/docs/1nce-os-device-controller)
