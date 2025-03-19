@@ -16,6 +16,6 @@ compatible: "pwm-buzzer"
 include: base.yaml
 
 properties:
-    pwms:
-      type: phandle-array
-      required: true
+  pwms:
+    type: phandle-array
+    required: true

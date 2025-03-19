@@ -7,6 +7,7 @@
 zephyr_include_directories(include)
 
 target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lwm2m_device.c)
+target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lwm2m_location.c)
 target_sources(app PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lwm2m_app_utils.c)
 
 
