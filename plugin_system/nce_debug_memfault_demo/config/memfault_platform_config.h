@@ -17,4 +17,4 @@
  * to Memfault cloud at the specified interval.
  */
 
- #define MEMFAULT_METRICS_HEARTBEAT_INTERVAL_SECS 30
+#define MEMFAULT_METRICS_HEARTBEAT_INTERVAL_SECS    30

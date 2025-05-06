@@ -1,7 +1,20 @@
-/*
- * Copyright (c) 2024 1NCE
- */
+/******************************************************************************
+ * @file       main.c
+ * @brief      1NCE Memfault Demo
+ * @details    This application demonstrates sending Memfault telemetry data to
+ *             the 1NCE CoAP proxy over LTE using Zephyr RTOS. It includes support
+ *             for DTLS onboarding, LED signaling, and fault simulation via buttons.
+ *
+ * @copyright
+ *     Portions copyright (c) 2019 Nordic Semiconductor ASA
+ *     Modified by 1NCE GmbH (c) 2024
+ ******************************************************************************/
 
+// SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+
+ /******************************************************************************
+* Includes
+******************************************************************************/
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/init.h>
@@ -29,7 +42,7 @@
     #include <nrf_modem_at.h>
     #include <zephyr/net/tls_credentials.h>
     #define MAX_PSK_SIZE    100
-    extern void sys_arch_reboot(int type);
+extern void sys_arch_reboot( int type );
 #endif /* if defined( CONFIG_NCE_MEMFAULT_DEMO_ENABLE_DTLS ) */
 
 #if defined( CONFIG_BOARD_THINGY91_NRF9160_NS )
@@ -54,7 +67,7 @@ static struct k_work_delayable coap_transmission_work;
 
 bool connected = false;
 
-bool virtual_switch = false; 
+bool virtual_switch = false;
 
 #if defined( CONFIG_NCE_MEMFAULT_DEMO_ENABLE_DTLS )
 /* Security tag for DTLS */
@@ -174,7 +187,7 @@ void configureLeds()
     if( ledRed.port && !device_is_ready( ledRed.port ) )
     {
         LOG_ERR( "Error %d: LED device %s is not ready; ignoring it\n",
-                ret, ledRed.port->name );
+                 ret, ledRed.port->name );
         ledRed.port = NULL;
     }
 
@@ -185,7 +198,7 @@ void configureLeds()
         if( ret != 0 )
         {
             LOG_ERR( "Error %d: failed to configure LED device %s pin %d\n",
-                    ret, ledRed.port->name, ledRed.pin );
+                     ret, ledRed.port->name, ledRed.pin );
             ledRed.port = NULL;
         }
     }
@@ -193,7 +206,7 @@ void configureLeds()
     if( ledGreen.port && !device_is_ready( ledGreen.port ) )
     {
         LOG_ERR( "Error %d: LED device %s is not ready; ignoring it\n",
-                ret, ledGreen.port->name );
+                 ret, ledGreen.port->name );
         ledGreen.port = NULL;
     }
 
@@ -204,7 +217,7 @@ void configureLeds()
         if( ret != 0 )
         {
             LOG_ERR( "Error %d: failed to configure LED device %s pin %d\n",
-                    ret, ledGreen.port->name, ledGreen.pin );
+                     ret, ledGreen.port->name, ledGreen.pin );
             ledGreen.port = NULL;
         }
     }
@@ -212,7 +225,7 @@ void configureLeds()
     if( ledBlue.port && !device_is_ready( ledBlue.port ) )
     {
         LOG_ERR( "Error %d: LED device %s is not ready; ignoring it\n",
-                ret, ledBlue.port->name );
+                 ret, ledBlue.port->name );
         ledBlue.port = NULL;
     }
 
@@ -223,7 +236,7 @@ void configureLeds()
         if( ret != 0 )
         {
             LOG_ERR( "Error %d: failed to configure LED device %s pin %d\n",
-                    ret, ledBlue.port->name, ledBlue.pin );
+                     ret, ledBlue.port->name, ledBlue.pin );
             ledBlue.port = NULL;
         }
     }
@@ -420,7 +433,7 @@ int store_credentials( void )
 /**
  * @brief Onboard the device by managing DTLS credentials.
  *
- * @param[in] overwrite Whether to overwrite existing credentials, should be set to true when DTLS connecting is failing. 
+ * @param[in] overwrite Whether to overwrite existing credentials, should be set to true when DTLS connecting is failing.
  * @return 0 on success, negative error code on failure.
  */
 static int prv_onboard_device( bool overwrite )
@@ -429,6 +442,7 @@ static int prv_onboard_device( bool overwrite )
     /* Unless "overwrite" is true,  */
     int err;
     bool exists;
+
     err = modem_key_mgmt_exists( CONFIG_NCE_SDK_DTLS_SECURITY_TAG, MODEM_KEY_MGMT_CRED_TYPE_PSK, &exists );
 
     if( overwrite || !exists )
@@ -472,8 +486,7 @@ static int prv_onboard_device( bool overwrite )
 
         LOG_INF( "Rebooting to ensure changes take effect after saving credentials.." );
 
-       sys_arch_reboot(0);
-
+        sys_arch_reboot( 0 );
     }
     else
     {
@@ -481,22 +494,22 @@ static int prv_onboard_device( bool overwrite )
     }
 
     return err;
-
 }
 
 /* Handles DTLS failure by onboarding the device with overwriting enabled  */
 static int prv_handle_dtls_failure( void )
 {
     int err;
-    
+
     /* Onboard the device with overwrtiting enabled */
-    err = prv_onboard_device(true);
+    err = prv_onboard_device( true );
+
     if( err )
     {
         LOG_ERR( "Device onboarding failed, err %d\n", err );
     }
-    return err;
 
+    return err;
 }
 #endif /* if defined( CONFIG_NCE_MEMFAULT_DEMO_ENABLE_DTLS ) */
 
@@ -532,7 +545,7 @@ static void prv_handle_memfault_send_result( int res )
         if( res == NCE_SDK_DTLS_CONNECT_ERROR )
         {
             LOG_ERR( "DTLS connection failed, Updating DTLS credentials, err %d\n", res );
-            prv_handle_dtls_failure();            
+            prv_handle_dtls_failure();
         }
         #endif /* if defined( CONFIG_NCE_MEMFAULT_DEMO_ENABLE_DTLS ) */
     }
@@ -543,7 +556,7 @@ static void prv_handle_memfault_send_result( int res )
         #if defined( CONFIG_NCE_MEMFAULT_DEMO_COAP_SYNC_METRICS )
         MEMFAULT_METRIC_ADD( sync_memfault_successful, 1 );
         #endif
-        
+
         #if defined( CONFIG_BOARD_THINGY91_NRF9160_NS )
         if( ledRed.port )
         {
@@ -560,9 +573,7 @@ static void prv_handle_memfault_send_result( int res )
             gpio_pin_set_dt( &ledBlue, 0 );
         }
         #endif /* if defined( CONFIG_BOARD_THINGY91_NRF9160_NS ) */
-
     }
-
 }
 
 #if defined( CONFIG_NCE_MEMFAULT_DEMO_PERIODIC_UPDATE )
@@ -590,7 +601,7 @@ static void coap_transmission_work_fn( struct k_work * work )
 
     int res = os_memfault_send();
 
-    prv_handle_memfault_send_result(res);
+    prv_handle_memfault_send_result( res );
 
 end:
     k_work_schedule( &coap_transmission_work,
@@ -605,10 +616,9 @@ end:
  */
 static void on_connect( void )
 {
-
     #if IS_ENABLED( MEMFAULT_NCS_LTE_METRICS )
     uint32_t time_to_lte_connection;
-    
+
     /* Retrieve the LTE time to connect metric */
     memfault_metrics_heartbeat_timer_read( MEMFAULT_METRICS_KEY( ncs_lte_time_to_connect_ms ),
                                            &time_to_lte_connection );
@@ -618,6 +628,7 @@ static void on_connect( void )
 
     #if defined( CONFIG_BOARD_THINGY91_NRF9160_NS )
     configureLeds();
+
     if( ledBlue.port )
     {
         gpio_pin_set_dt( &ledBlue, 25 );
@@ -626,10 +637,11 @@ static void on_connect( void )
 
     #if defined( CONFIG_NCE_MEMFAULT_DEMO_ENABLE_DTLS )
     /* Onboard the device */
-    int err = prv_onboard_device(false);
+    int err = prv_onboard_device( false );
+
     if( err )
     {
-        LOG_ERR( "Deviec onboarding failed, err %d\n", err );
+        LOG_ERR( "Device onboarding failed, err %d\n", err );
         return;
     }
     #endif /* if defined( CONFIG_NCE_MEMFAULT_DEMO_ENABLE_DTLS ) */
@@ -652,7 +664,7 @@ static void on_connect( void )
 
     int res = os_memfault_send();
 
-    prv_handle_memfault_send_result(res);
+    prv_handle_memfault_send_result( res );
 
     #if defined( CONFIG_NCE_MEMFAULT_DEMO_PERIODIC_UPDATE )
     k_work_schedule( &coap_transmission_work,
@@ -663,8 +675,8 @@ static void on_connect( void )
 
 /* Send Memfault data via the 1NCE CoAP proxy (CLI Command) */
 static int post_data_cmd( const struct shell * shell,
-                      size_t argc,
-                      char ** argv )
+                          size_t argc,
+                          char ** argv )
 {
     LOG_INF( "Posting Memfault Data via 1NCE CoAP Proxy" );
 
@@ -680,15 +692,15 @@ static int post_data_cmd( const struct shell * shell,
 
     int res = os_memfault_send();
 
-    prv_handle_memfault_send_result(res);
+    prv_handle_memfault_send_result( res );
 
     return res;
 }
 
 /* Disconnects and reconnects to the LTE network with a delay (CLI Command) */
 static int disconnect_cmd( const struct shell * shell,
-                       size_t argc,
-                       char ** argv )
+                           size_t argc,
+                           char ** argv )
 {
     LOG_INF( "Disconnecting" );
 
@@ -718,22 +730,23 @@ static int disconnect_cmd( const struct shell * shell,
 
 /* Trigger Division by zero (CLI Command) */
 static void div_by_0_cmd( const struct shell * shell,
-                      size_t argc,
-                      char ** argv )
+                          size_t argc,
+                          char ** argv )
 {
-        volatile uint32_t i;
-        LOG_WRN( "Division by zero will now be triggered" );
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wdiv-by-zero"
-        i = 1 / 0;
-        #pragma GCC diagnostic pop
-        ARG_UNUSED( i );
+    volatile uint32_t i;
+
+    LOG_WRN( "Division by zero will now be triggered" );
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wdiv-by-zero"
+    i = 1 / 0;
+    #pragma GCC diagnostic pop
+    ARG_UNUSED( i );
 }
 
 /* Increment switch_1_toggle_count (CLI Command) */
 static void sw1_cmd( const struct shell * shell,
-                      size_t argc,
-                      char ** argv )
+                     size_t argc,
+                     char ** argv )
 {
     int err = MEMFAULT_METRIC_ADD( switch_1_toggle_count, 1 );
 
@@ -749,14 +762,14 @@ static void sw1_cmd( const struct shell * shell,
 
 /* Trigger switch_2_toggled event (CLI Command) */
 static void sw2_cmd( const struct shell * shell,
-                      size_t argc,
-                      char ** argv )
+                     size_t argc,
+                     char ** argv )
 {
     MEMFAULT_TRACE_EVENT_WITH_LOG( switch_2_toggled, "Switch state: %d",
-                                    virtual_switch ? 1 : 0 );
+                                   virtual_switch ? 1 : 0 );
     virtual_switch = !virtual_switch;
     LOG_INF( "switch_2_toggled event has been traced, button state: %d",
-                virtual_switch ? 1 : 0 );
+             virtual_switch ? 1 : 0 );
 }
 
 /* Shell command set definition */
@@ -797,14 +810,17 @@ int main( void )
 
     #if defined( CONFIG_BOARD_THINGY91_NRF9160_NS )
     configureLeds();
+
     if( ledRed.port )
     {
         gpio_pin_set_dt( &ledRed, 0 );
     }
+
     if( ledGreen.port )
     {
         gpio_pin_set_dt( &ledGreen, 0 );
     }
+
     if( ledBlue.port )
     {
         gpio_pin_set_dt( &ledBlue, 0 );
