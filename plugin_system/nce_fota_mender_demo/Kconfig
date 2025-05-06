@@ -6,18 +6,22 @@ menu "1NCE FOTA Mender demo"
 config APPLICATION_VERSION
 	int "Mender application version"
 	default 1
+	help	
+		Application version number for the running firmware.
 
 config ARTIFACT_NAME
 	string "Mender articat name"
-	default "test"
+	default "release-v1"
+	help
+		The name of the Mender artifact (e.g. release-v1).
 
 config USE_HTTPS
 	bool
 	prompt "Use HTTPS for download"
 
-config COAP_SERVER_HOSTNAME
-	string "CoAP server hostname"
-	default "coap.os.1nce.com"
+config NCE_MENDER_COAP_PROXY_HOST
+	string "Hostname of the CoAP proxy provided by 1NCE."
+	default "coap.proxy.os.1nce.com"
 
 config MENDER_URL
 	string "Mender server URL"
@@ -28,11 +32,16 @@ config COAP_SERVER_PORT
 	default 5684 if NCE_DEVICE_AUTHENTICATOR
 	default 5683 
 
-config COAP_URI_QUERY
-	string "CoAP URI Query"
-	help
-	   "the URI Query option used to set the MQTT topic for 1NCE IoT integrator"
-	default "t=test"
+
+config NCE_MENDER_COAP_URI_PATH
+    string "CoAP URI path"
+    default "mender"
+    help
+      URI path for CoAP requests routed to Mender.
+
+config PAYLOAD
+	string "Message to send to 1NCE Iot Integrator"
+	default "Hi, this is a test message!"
 
 config MENDER_FW_UPDATE_CHECK_FREQUENCY_SECONDS
 	int "Firmware Update check Frequency in Seconds"
@@ -40,7 +49,7 @@ config MENDER_FW_UPDATE_CHECK_FREQUENCY_SECONDS
 
 config MENDER_AUTH_CHECK_FREQUENCY_SECONDS
 	int "Authentication Status Frequency in Seconds"
-	default 15
+	default 30
 
 
 if NCE_DEVICE_AUTHENTICATOR
@@ -59,6 +68,8 @@ endif
 config MENDER_DEVICE_TYPE
 	string "Mender device type"
 	default "thingy"
+	help
+		Device type reported to Mender for update compatibility.
 
 config LED_THREAD_STACK_SIZE
 	int "LED Thread Stack Size (bytes)"
@@ -117,18 +128,6 @@ config LED_CONTINUOUS_INDICATION
 	depends on !LED_INDICATION_DISABLED
 	bool "Show an idle pattern instead of turning LEDs off"
 	default y
-
-if !NCE_ENERGY_SAVER
-config PAYLOAD
-	string "Message to send to 1NCE Iot Integrator"
-	default "Hi, this is a test message!"
-endif
-
-if NCE_ENERGY_SAVER	
-config PAYLOAD_DATA_SIZE
-	int "payload data size"
-	default 10
-endif
 
 endmenu
 
