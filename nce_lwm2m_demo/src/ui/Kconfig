@@ -21,9 +21,3 @@ config UI_INPUT
 	select DK_LIBRARY
 	help
 	  Enable switches and buttons.
-
-
-config UI_SENSE_LED
-	bool "UI Sense LED module"
-	help
-	  Enables the sense LEDs available on the Thingy:91.

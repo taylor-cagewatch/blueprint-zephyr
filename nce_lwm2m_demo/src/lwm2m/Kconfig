@@ -34,30 +34,6 @@ config LWM2M_APP_BUZZER
 	  Create a buzzer LWM2M object.
 	  Should not be enabled on the nRF91 series DK, as it has no buzzer.
 
-config LWM2M_APP_TEMP_SENSOR
-	bool
-	depends on LWM2M_IPSO_TEMP_SENSOR
-	help
-	  Create temperature sensor LwM2M object.
-
-config LWM2M_APP_PRESS_SENSOR
-	bool
-	depends on LWM2M_IPSO_PRESSURE_SENSOR
-	help
-	  Create air pressure sensor LwM2M object.
-
-config LWM2M_APP_HUMID_SENSOR
-	bool
-	depends on LWM2M_IPSO_HUMIDITY_SENSOR
-	help
-	  Create air humidity sensor LwM2M object.
-
-config LWM2M_APP_GAS_RES_SENSOR
-	bool
-	depends on LWM2M_IPSO_GENERIC_SENSOR
-	help
-	  Create gas resistance sensor LwM2M object.
-
 config LWM2M_APP_LIGHT_CONTROL
 	bool
 	depends on LWM2M_IPSO_LIGHT_CONTROL
@@ -66,11 +42,3 @@ config LWM2M_APP_LIGHT_CONTROL
 	  Create light control LWM2M object(s).
 	  The nRF91 series DK will have multiple object instances (one for each LED), if UI_LED_USE_GPIO is
 	  chosen.
-
-config LWM2M_APP_LIGHT_SENSOR
-	bool
-	depends on LWM2M_IPSO_APP_COLOUR_SENSOR
-	depends on LIGHT_SENSOR
-	help
-	  Create LWM2M light sensor objects.
-	  It uses the IPSO Colour object.
