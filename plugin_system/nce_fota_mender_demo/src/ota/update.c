@@ -55,9 +55,6 @@ static struct gpio_callback sw0_cb;
 
 int cert_provision(void)
 {
-	static const char cert[] = {
-		#include "../cert/BaltimoreCyberTrustRoot"
-	};
 	BUILD_ASSERT(sizeof(cert) < KB(4), "Certificate too large");
 
 	int err;
@@ -94,6 +91,10 @@ int cert_provision(void)
 	}
 
 	return 0;
+    static const char cert[] =
+    {
+        #include "../cert/GTS_Root_R4"
+    };
 }
 
 int button_init(void)
