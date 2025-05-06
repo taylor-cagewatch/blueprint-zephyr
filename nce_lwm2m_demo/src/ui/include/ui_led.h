@@ -13,16 +13,16 @@
 extern "C" {
 #endif
 
-#if defined(CONFIG_BOARD_THINGY91_NRF9160_NS) || defined(CONFIG_BOARD_THINGY91X_NRF9151_NS)
-#define NUM_LEDS	3
-#elif defined(CONFIG_BOARD_NRF9160DK_NRF9160_NS) || \
-	defined(CONFIG_BOARD_NRF9161DK_NRF9161_NS) || \
-	defined(CONFIG_BOARD_NRF9151DK_NRF9151_NS)
-#if defined(CONFIG_UI_LED_USE_PWM)
-#define NUM_LEDS	1
-#else
-#define NUM_LEDS	4
-#endif
+#if defined( CONFIG_BOARD_THINGY91_NRF9160_NS ) || defined( CONFIG_BOARD_THINGY91X_NRF9151_NS )
+    #define NUM_LEDS        3
+#elif defined( CONFIG_BOARD_NRF9160DK_NRF9160_NS ) || \
+    defined( CONFIG_BOARD_NRF9161DK_NRF9161_NS ) ||   \
+    defined( CONFIG_BOARD_NRF9151DK_NRF9151_NS )
+    #if defined( CONFIG_UI_LED_USE_PWM )
+        #define NUM_LEDS    1
+    #else
+        #define NUM_LEDS    4
+    #endif
 #endif
 
 /**
@@ -33,7 +33,8 @@ extern "C" {
  * @param new_state The LED's new state.
  * @return int 0 if successful, negative error code if not.
  */
-int ui_led_pwm_on_off(uint8_t led_id, bool new_state);
+int ui_led_pwm_on_off( uint8_t led_id,
+                       bool new_state );
 
 /**
  * @brief Set the intensity of the LED.
@@ -43,14 +44,15 @@ int ui_led_pwm_on_off(uint8_t led_id, bool new_state);
  *            a percentage of the maximum LED intensity.
  * @return int 0 if successful, negative error code if not.
  */
-int ui_led_pwm_set_intensity(uint8_t led_id, uint8_t led_intensity);
+int ui_led_pwm_set_intensity( uint8_t led_id,
+                              uint8_t led_intensity );
 
 /**
  * @brief Initialize the LEDs to use PWM.
  *
  * @return int 0 if successful, negative error code if not.
  */
-int ui_led_pwm_init(void);
+int ui_led_pwm_init( void );
 
 /**
  * @brief Turn the LED on or off. If false the
@@ -60,14 +62,15 @@ int ui_led_pwm_init(void);
  * @param new_state The LED's new state.
  * @return int 0 if successful, negative error code if not.
  */
-int ui_led_gpio_on_off(uint8_t led_id, bool new_state);
+int ui_led_gpio_on_off( uint8_t led_id,
+                        bool new_state );
 
 /**
  * @brief Initialize the LEDs to use GPIO.
  *
  * @return int 0 if successful, negative error code if not.
  */
-int ui_led_gpio_init(void);
+int ui_led_gpio_init( void );
 
 #ifdef __cplusplus
 }

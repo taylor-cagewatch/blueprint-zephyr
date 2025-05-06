@@ -20,7 +20,7 @@ extern "C" {
  * @param new_state The buzzer's new state.
  * @return int 0 if successful, negative error code if not.
  */
-int ui_buzzer_on_off(bool new_state);
+int ui_buzzer_on_off( bool new_state );
 
 /**
  * @brief Set the frequency of the buzzer.
@@ -28,7 +28,7 @@ int ui_buzzer_on_off(bool new_state);
  * @param freq Frequency in Hz.
  * @return int 0 if successful, negative error code if not.
  */
-int ui_buzzer_set_frequency(uint32_t freq);
+int ui_buzzer_set_frequency( uint32_t freq );
 
 /**
  * @brief Set the intesity of the buzzer.
@@ -37,14 +37,14 @@ int ui_buzzer_set_frequency(uint32_t freq);
  *        a percentage of the maximum buzzer volume intensity.
  * @return int 0 if successful, negative error code if not.
  */
-int ui_buzzer_set_intensity(uint8_t intensity);
+int ui_buzzer_set_intensity( uint8_t intensity );
 
 /**
  * @brief Initialize the buzzer.
  *
  * @return int 0 if successful, negative error code if not.
  */
-int ui_buzzer_init(void);
+int ui_buzzer_init( void );
 
 #ifdef __cplusplus
 }

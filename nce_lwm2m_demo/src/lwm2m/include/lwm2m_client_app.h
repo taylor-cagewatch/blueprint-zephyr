@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-int lwm2m_app_init_device(char *serial_num);
+int lwm2m_app_init_device( char * serial_num );
 
 #ifdef __cplusplus
 }

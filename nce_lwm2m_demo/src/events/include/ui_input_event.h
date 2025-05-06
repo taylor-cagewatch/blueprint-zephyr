@@ -15,20 +15,22 @@
 extern "C" {
 #endif
 
-enum ui_input_type {
-	PUSH_BUTTON,
-	ON_OFF_SWITCH
+enum ui_input_type
+{
+    PUSH_BUTTON,
+    ON_OFF_SWITCH
 };
 
-struct ui_input_event {
-	struct app_event_header header;
+struct ui_input_event
+{
+    struct app_event_header header;
 
-	enum ui_input_type type;
-	uint8_t device_number;
-	bool state;
+    enum ui_input_type type;
+    uint8_t device_number;
+    bool state;
 };
 
-APP_EVENT_TYPE_DECLARE(ui_input_event);
+APP_EVENT_TYPE_DECLARE( ui_input_event );
 
 #ifdef __cplusplus
 }

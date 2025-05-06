@@ -22,7 +22,7 @@ extern "C" {
  *
  * @return int 0 if successful, negative error code if not.
  */
-int ui_input_init(void);
+int ui_input_init( void );
 
 #ifdef __cplusplus
 }

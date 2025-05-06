@@ -11,14 +11,17 @@
 #include "lwm2m_app_utils.h"
 
 #include <zephyr/logging/log.h>
-LOG_MODULE_REGISTER(app_lwm2m, CONFIG_APP_LOG_LEVEL);
+LOG_MODULE_REGISTER( app_lwm2m, CONFIG_APP_LOG_LEVEL );
 
-void set_ipso_obj_timestamp(int ipso_obj_id, unsigned int obj_inst_id)
+void set_ipso_obj_timestamp( int ipso_obj_id,
+                             unsigned int obj_inst_id )
 {
-	int ret;
+    int ret;
 
-	ret = lwm2m_set_time(&LWM2M_OBJ(ipso_obj_id, obj_inst_id, TIMESTAMP_RID), time(NULL));
-	if (ret) {
-		LOG_ERR("Unable to set timestamp");
-	}
+    ret = lwm2m_set_time( &LWM2M_OBJ( ipso_obj_id, obj_inst_id, TIMESTAMP_RID ), time( NULL ) );
+
+    if( ret )
+    {
+        LOG_ERR( "Unable to set timestamp" );
+    }
 }
