@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.20.0)
 
-if(${BOARD} STREQUAL "thingy91_nrf9160_ns")
-message(STATUS "Using static partition definition")
-set(PM_STATIC_YML_FILE ${CMAKE_CURRENT_SOURCE_DIR}/thingy91_pm_static.yml)
-endif()
-
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(application_update)
 zephyr_compile_definitions(PROJECT_NAME=${PROJECT_NAME})

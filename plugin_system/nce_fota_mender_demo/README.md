@@ -2,84 +2,202 @@
 
 ## Overview
 
-1NCE FOTA Mender Demo allows customers to update the firmware of their devices using 1NCE Mender plugin.
+The **1NCE FOTA Mender Demo** enables firmware-over-the-air (FOTA) updates through [Mender.io](https://mender.io) using the 1NCE CoAP Proxy for secure and efficient communication. The device securely connects, authenticates, checks for firmware updates, downloads new versions, and updates itself.
 
-For `Thingy:91`, the LED colors indicate the following statuses:
+On the `Thingy:91`, the LED colors indicate the following statuses:
 
-- `Flashing white`  the device is  connecting.
-- `Green`  the device is on firmware version 1.
-- `Flashing Green / Flashing Blue `  the device is downloading the firmware update.
-- `Blue`  the device is  on firmware version 2.
+- ⚪ **Flashing White** – Connecting to the network  
+- 🟢 **Solid Green** – Firmware version 1 running  
+- 🟡 **Flashing Green / Flashing Blue** – Firmware is being downloaded  
+- 🔵 **Solid Blue** – Firmware version 2 running 
 
+#### 📟 Development Kits (nRF9160DK / nRF9151DK)
 
-To install Mender plugin, follow the instructions in [Mender Plugin dev-hub documentation](https://help.1nce.com/dev-hub/docs/1nce-os-plugins-fota-management-mender). 
+While the firmware is being downloaded, the DKs show a circular LED pattern across the four LEDs:
+
+- 🔄 LEDs 1 → 2 → 3 → 4 blink in sequence, repeating until the download is complete. 
+
+---
+
+## Mender Integration
+
+This demo requires the [1NCE Mender Plugin](https://help.1nce.com/dev-hub/docs/1nce-os-plugins-fota-management-mender) to be installed and enabled.
+
+You can use prebuilt binaries and artifacts for quick testing.
+
+---
 
 ## Running the demo
 
-1. Build the demo for `thingy91_nrf9160_ns` and flash the file `app_signed.hex` to the board using [nRF Connect Programmer](https://infocenter.nordicsemi.com/index.jsp?topic=%2Fug_nc_programmer%2FUG%2Fnrf_connect_programmer%2Fncp_introduction.html). The file is located in the subfolder `zephyr` in the build directory. 
+### 1️⃣ Build & Flash
 
-2. When starting the demo for the first time, the device needs to be accepted in Mender dashboard, then it will periodically check for firmware updates, the device inventory is also updated as follows:
+Flash the demo to the board using VS Code or nRF Connect for Desktop:
+   - For **Thingy:91**, use [nRF Connect Programmer](https://www.nordicsemi.com/Products/Development-tools/nRF-Connect-for-Desktop/Download).
+
+   - For **nrf9151DK & nrf9160DK**, the firmware can be flashed directly from **VS Code**.
+
+> ⚠️ **Windows Path Length Warning**  
+> On **Windows**, long file paths may cause build errors during the demo compilation.  
+> 👉 To avoid this issue, move the project folder to a shorter path such as:  
+>
+> ```bash
+> C:\dev\fota_mender_demo
+> ```
+
+### 2️⃣ Accept the Device in Mender
+
+When starting the demo for the first time, the device will attempt to register with the Mender server.
+
+🛡️ **Manual Approval Required:**  
+You must manually **accept the device** in the [Mender Dashboard](https://hosted.mender.io/ui/) before it can receive any updates.
+
+#### 🔁 After acceptance:
+
+- The device will **periodically check** for firmware updates
+- Its **inventory** (such as IMEI, artifact name, and device type) will be updated in the Mender dashboard
+
+> 💡 You can view this info under the **Devices** section after the device is authorized.
 <p align="center"><img src="./images/v1.PNG"><br></p>
 
 
-3. Change `CONFIG_APPLICATION_VERSION` and `CONFIG_ARTIFACT_NAME` to the new version and rebuild the demo.
+### 3️⃣  Bump Version & Rebuild
 
-4. Create the artifact and use it to create a deployment as described in the following sections
+To simulate a firmware update:
+
+1. Open your `prj.conf` file
+2. Update the following configuration options to reflect the new version:
+
+```conf
+CONFIG_APPLICATION_VERSION=2
+CONFIG_ARTIFACT_NAME="release-v2"
+```
+3. Rebuild the firmware using your preferred method (e.g., west build, VS Code)
+
+### 4️⃣ Create & Upload Mender Artifact
+
+📦 Firmware updates in Mender are distributed as **artifacts**.
+
+#### 🛠️ Create Artifact with `mender-artifact`
+
+1. **Install** the [Mender Artifact Tool](https://docs.mender.io/downloads#mender-artifact)
+
+2. **Run** the following command to generate a new artifact:
+> ⚙️ Replace the placeholders with your actual values.
+
+```bash
+mender-artifact write module-image \
+  -t thingy \
+  -o release-v2.mender \
+  -T release-v2 \
+  -n release-v2 \
+  -f build/nce_fota_mender_demo/zephyr/zephyr.signed.bin \
+  --compression none
+```
+📌 Replace values as needed for your device:
+
+- `-t`: Device type (`CONFIG_MENDER_DEVICE_TYPE`)
+- `-n`: Artifact name (`CONFIG_ARTIFACT_NAME`)
+- `-T`: Payload type (e.g. release-v2)
+- `-f`: Firmware binary file path (usually `build/nce_fota_mender_demo/zephyr/zephyr.signed.bin`)
+
+3. **Upload** the generated `.mender` file to the **Releases** section in the Mender dashboard.
+
+<p align="center"><img src="./images/artifact.PNG" width="600"></p>
 
 
-## Artifact Creation
+## 5️⃣ Deployment Creation
 
-### Note: You can use the pre-created Artifact and Firmware in [FOTA with Mender Demo Firmware](./thingy_binaries)
+Once your artifact is uploaded to the Mender **Releases** section, you're ready to deploy it to your device(s).
 
-1. Download   [Mender-artifact tool](https://docs.mender.io/downloads#mender-artifact). 
+1. Navigate to the **Deployments** tab in the Mender dashboard.  
+2. Click **Create Deployment** and follow the wizard:
+   - Select the **target device** or **device group**.
+   - Choose the **artifact** you previously uploaded.
 
-2. Run the following command to create the artifact: (the default DEVICE_TYPE is `thingy`, and the binary file is `app_update.bin` which is located in the subfolder `zephyr` in the build directory). PAYLOAD_TYPE & ARTIFACT_NAME can both be set according to the required version, for example `release-v1`
+<p align="center"><img src="./images/deployment_1.PNG" width="600"></p>
+
+---
+
+#### 🚦 Deployment Status Flow
+
+After creation, the deployment will appear in the list with an initial status of `pending`.  
+As your device contacts the Mender server, the status will progress automatically:
 
 ```
-mender-artifact write module-image  -t DEVICE_TYPE  -o FILE_NAME.mender  -T PAYLOAD_TYPE  -n ARTIFACT_NAME  -f BINARY_FILE  --compression none
+pending → downloading → rebooting → installing → success ✅ / failure ❌
 ```
 
-
-3. Upload the artifact to Mender (in `Releases` page)
-<p align="center"><img src="./images/artifact.PNG"><br></p>
-
-
-## Deployment Creation
-
-1. The deployment can be created as follows:
-<p align="center"><img src="./images/deployment_1.PNG"><br>
-</p>
+<p align="center"><img src="./images/deployment_2.PNG" width="600"></p>  
+<p align="center"><img src="./images/success.PNG" width="600"></p>
 
 
-2. It will then be available for the device in the next firmware update check. The deployment status starts as `pending`.
-<p align="center"><img src="./images/deployment_2.PNG"><br>
-</p>
+## ⚙️ Configuration Options
+
+The following configuration options are available for customizing the Mender FOTA demo:
+
+### 🧩 General Options
+
+| Config Option                                      | Description                                         | Default         |
+|---------------------------------------------------|-----------------------------------------------------|-----------------|
+| `CONFIG_APPLICATION_VERSION`                      | Application version reported to Mender              | `1`             |
+| `CONFIG_ARTIFACT_NAME`                            | Mender artifact name (used in artifact creation)    | `"release-v1"`  |
+| `CONFIG_MENDER_DEVICE_TYPE`                       | Device type used for update compatibility           | `"thingy"`      |
+| `CONFIG_MENDER_FW_UPDATE_CHECK_FREQUENCY_SECONDS`| Firmware update check interval (in seconds)         | `30`            |
+| `CONFIG_MENDER_AUTH_CHECK_FREQUENCY_SECONDS`      | Auth check interval (when unauthorized)             | `30`            |
+
+---
+
+### 🔐 Secure Communication
+
+| Config Option                           | Description                                             | Default                     |
+|----------------------------------------|---------------------------------------------------------|-----------------------------|
+| `CONFIG_MENDER_URL`                    | Mender backend URL                                      | `"eu.hosted.mender.io"`     |
+| `CONFIG_NCE_MENDER_COAP_PROXY_HOST`    | CoAP proxy hostname provided by 1NCE                    | `"coap.proxy.os.1nce.com"`  |
+| `CONFIG_COAP_SERVER_PORT`              | CoAP server port (5684 if DTLS is enabled, else 5683)   | `Auto`                      |
+| `CONFIG_NCE_MENDER_COAP_URI_PATH`      | URI path for proxying CoAP requests to Mender           | `"mender"`                  |
+
+--- 
+
+### Unsecure CoAP Communication 
+
+By default, the demo uses 1NCE SDK to send a CoAP GET request to 1NCE OS Device Authenticator. The response is then processed by the SDK and the credentials are used to connect to 1NCE endpoint via CoAP with DTLS. 
+
+To test unsecure communication (plain CoAP), disable the device authenticator by adding the following flag to `prj.conf`
+
+```
+CONFIG_NCE_DEVICE_AUTHENTICATOR=n
+``` 
+---
+
+## 📦 Ready-to-Flash Firmware for Thingy:91
 
 
-3.The device will start downloading the firmware, the staus will change  to `downloading`,`rebooting`, `installing`, and then `success` or `failure`.
-<p align="center"><img src="./images/success.PNG"><br>
-</p>
+For quick testing, we provide **prebuilt firmware binaries** that can be flashed directly to your Thingy:91 device — no build setup required.
 
-## Demo Configuration
+Available prebuilt files:
 
-The configuration options for this sample are:
+| Version     | Binary (.bin)        | HEX (.hex)              | Mender Artifact (.mender)   |
+|-------------|----------------------|--------------------------|-----------------------------|
+| `release-v1`| `release-v1.bin`     | `release-v1.hex`         | `release-v1.mender`         |
+| `release-v2`| `release-v2.bin`     | `release-v2.hex`         | `release-v2.mender`         |
 
-`CONFIG_APPLICATION_VERSION` the selected application version (1 or 2 for the default demo with LEDs, but new versions can also be defined).
+👉 **Flash directly using:** [`release-v1.hex`](thingy_binaries/release-v1.hex) or [`release-v2.hex`](thingy_binaries/release-v2.hex)
 
-`CONFIG_ARTIFACT_NAME` the artifact name for the selected version.
+> ⏳ **Note:** These builds enable all LTE bands, so the initial network registration may take several minutes while scanning.
 
-`CONFIG_MENDER_DEVICE_TYPE` the device type configured in Mender.
+---
 
-`CONFIG_MENDER_FW_UPDATE_CHECK_FREQUENCY_SECONDS` Firmware Update checking frequency.
+## 🆘 Need Help?
 
-`CONFIG_MENDER_AUTH_CHECK_FREQUENCY_SECONDS` Authentication status checking frequency,if the device is unauthorized.
+Open an issue on GitHub for:
 
-`CONFIG_MENDER_URL` the URL of mender server.
+- ❗ Bug reports  
+- 🚀 Feature requests  
+- 📝 Documentation issues  
+- ❓ General questions  
 
-`CONFIG_COAP_SERVER_HOSTNAME` is set to 1NCE CoAP proxy.
+👉 [Create a new issue](https://github.com/1NCE-GmbH/blueprint-zephyr/issues/new/choose)
 
-`CONFIG_COAP_URI_QUERY` set to `mender` .
+---
 
-## Asking for Help
-
-The most effective communication with our team is through GitHub. Simply create a [new issue](https://github.com/1NCE-GmbH/blueprint-zephyr/issues/new/choose) and select from a range of templates covering bug reports, feature requests, documentation issue, or Gerneral Question.
+Made with 💙 by the 1NCE Team.

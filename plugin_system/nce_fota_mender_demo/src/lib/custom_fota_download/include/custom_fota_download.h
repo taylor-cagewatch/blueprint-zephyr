@@ -30,49 +30,53 @@ extern "C" {
 /**
  * @brief FOTA download event IDs.
  */
-enum fota_download_evt_id {
-	/** FOTA download progress report. */
-	CUSTOM_FOTA_DOWNLOAD_EVT_PROGRESS,
-	/** FOTA download finished. */
-	CUSTOM_FOTA_DOWNLOAD_EVT_FINISHED,
-	/** FOTA download erase pending. */
-	CUSTOM_FOTA_DOWNLOAD_EVT_ERASE_PENDING,
-	/** FOTA download erase done. */
-	CUSTOM_FOTA_DOWNLOAD_EVT_ERASE_DONE,
-	/** FOTA download error. */
-	CUSTOM_FOTA_DOWNLOAD_EVT_ERROR,
-	/** FOTA download cancelled. */
-	CUSTOM_FOTA_DOWNLOAD_EVT_CANCELLED
+enum fota_download_evt_id
+{
+    /** FOTA download progress report. */
+    CUSTOM_FOTA_DOWNLOAD_EVT_PROGRESS,
+    /** FOTA download finished. */
+    CUSTOM_FOTA_DOWNLOAD_EVT_FINISHED,
+    /** FOTA download erase pending. */
+    CUSTOM_FOTA_DOWNLOAD_EVT_ERASE_PENDING,
+    /** FOTA download erase done. */
+    CUSTOM_FOTA_DOWNLOAD_EVT_ERASE_DONE,
+    /** FOTA download error. */
+    CUSTOM_FOTA_DOWNLOAD_EVT_ERROR,
+    /** FOTA download cancelled. */
+    CUSTOM_FOTA_DOWNLOAD_EVT_CANCELLED
 };
 
 /**
  * @brief FOTA download error cause values.
  */
-enum fota_download_error_cause {
-	/** No error, used when event ID is not CUSTOM_FOTA_DOWNLOAD_EVT_ERROR. */
-	CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_NO_ERROR,
-	/** Downloading the update failed. The download may be retried. */
-	CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_DOWNLOAD_FAILED,
-	/** The update is invalid and was rejected. Retry will not help. */
-	CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_INVALID_UPDATE,
-	/** Actual firmware type does not match expected. Retry will not help. */
-	CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_TYPE_MISMATCH,
-	/** Generic error on device side. */
-	CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_INTERNAL,
+enum fota_download_error_cause
+{
+    /** No error, used when event ID is not CUSTOM_FOTA_DOWNLOAD_EVT_ERROR. */
+    CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_NO_ERROR,
+    /** Downloading the update failed. The download may be retried. */
+    CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_DOWNLOAD_FAILED,
+    /** The update is invalid and was rejected. Retry will not help. */
+    CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_INVALID_UPDATE,
+    /** Actual firmware type does not match expected. Retry will not help. */
+    CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_TYPE_MISMATCH,
+    /** Generic error on device side. */
+    CUSTOM_FOTA_DOWNLOAD_ERROR_CAUSE_INTERNAL,
 };
 
 /**
  * @brief FOTA download event data.
  */
-struct fota_download_evt {
-	enum fota_download_evt_id id;
+struct fota_download_evt
+{
+    enum fota_download_evt_id id;
 
-	union {
-		/** Error cause. */
-		enum fota_download_error_cause cause;
-		/** Download progress %. */
-		int progress;
-	};
+    union
+    {
+        /** Error cause. */
+        enum fota_download_error_cause cause;
+        /** Download progress %. */
+        int progress;
+    };
 };
 
 /**
@@ -81,7 +85,7 @@ struct fota_download_evt {
  * @param evt Event.
  *
  */
-typedef void (*fota_download_callback_t)(const struct fota_download_evt *evt);
+typedef void (*fota_download_callback_t)( const struct fota_download_evt * evt );
 
 /**@brief Initialize the firmware over-the-air download library.
  *
@@ -90,7 +94,7 @@ typedef void (*fota_download_callback_t)(const struct fota_download_evt *evt);
  * @retval 0 If successfully initialized.
  *           Otherwise, a negative value is returned.
  */
-int custom_fota_download_init(fota_download_callback_t client_callback);
+int custom_fota_download_init( fota_download_callback_t client_callback );
 
 /**@brief Start downloading the given file from the given host.
  *
@@ -119,8 +123,11 @@ int custom_fota_download_init(fota_download_callback_t client_callback);
  * @retval -EALREADY If download is already ongoing.
  *                   Otherwise, a negative value is returned.
  */
-int fota_download_start(const char *host, const char *file, int sec_tag,
-			uint8_t pdn_id, size_t fragment_size);
+int fota_download_start( const char * host,
+                         const char * file,
+                         int sec_tag,
+                         uint8_t pdn_id,
+                         size_t fragment_size );
 
 /**@brief Start downloading the given file from the given host. Validate that the
  * file type matches the expected type before starting the installation.
@@ -142,9 +149,12 @@ int fota_download_start(const char *host, const char *file, int sec_tag,
  * @retval -EALREADY If download is already ongoing.
  *                   Otherwise, a negative value is returned.
  */
-int fota_download_start_with_image_type(const char *host, const char *file,
-			int sec_tag, uint8_t pdn_id, size_t fragment_size,
-			const enum dfu_target_image_type expected_type);
+int fota_download_start_with_image_type( const char * host,
+                                         const char * file,
+                                         int sec_tag,
+                                         uint8_t pdn_id,
+                                         size_t fragment_size,
+                                         const enum dfu_target_image_type expected_type );
 
 /**@brief Cancel FOTA image downloading.
  *
@@ -152,7 +162,7 @@ int fota_download_start_with_image_type(const char *host, const char *file,
  * @retval -EAGAIN If download is not started, aborted or completed.
  *                 Otherwise, a negative value is returned.
  */
-int fota_download_cancel(void);
+int fota_download_cancel( void );
 
 /**@brief Get target image type.
  *
@@ -161,7 +171,7 @@ int fota_download_cancel(void);
  * @retval 0 Unknown type before download starts.
  *           Otherwise, a type defined in enum dfu_target_image_type.
  */
-int fota_download_target(void);
+int fota_download_target( void );
 
 /**@brief Get the active bootloader (B1) slot, s0 or s1.
  *
@@ -170,7 +180,7 @@ int fota_download_target(void);
  * @retval 0 If successful.
  *           Otherwise, a (negative) error code is returned.
  */
-int fota_download_s0_active_get(bool *const s0_active);
+int fota_download_s0_active_get( bool *const s0_active );
 
 #ifdef __cplusplus
 }

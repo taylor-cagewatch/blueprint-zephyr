@@ -1,7 +1,7 @@
 /*
- *Copyright (c) 2022 Nordic Semiconductor ASA
+ * Copyright (c) 2022 Nordic Semiconductor ASA
  *
- *SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
  */
 
 #ifndef CUSTOM_FOTA_DOWNLOAD_UTIL_H__
@@ -26,10 +26,11 @@ extern "C" {
  *				 NULL if no space separator is found.
  *
  * @retval - 0 If successful (note that this does not imply that a space separator was found)
-	   - negative errno otherwise.
+ *     - negative errno otherwise.
  */
-int fota_download_parse_dual_resource_locator(char *const file, bool s0_active,
-					     const char **selected_path);
+int fota_download_parse_dual_resource_locator( char *const file,
+                                               bool s0_active,
+                                               const char ** selected_path );
 
 #ifdef __cplusplus
 }

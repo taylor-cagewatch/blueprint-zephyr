@@ -4,47 +4,67 @@
 
 1NCE Zephyr UDP Demo allows customers to communicate with 1NCE endpoints via UDP Protocol, and it can send compressed payload using the Energy Saver feature. 
 
-With `Thingy:91`, the LED colors indicate the following status: `RED` -> Connecting, `BLUE` -> Network connection established, `GREEN` -> Message Sent to 1NCE OS 
+On the `Thingy:91` device, LED indicators show the following statuses:
 
- ## Using 1NCE Energy saver
+- 🔴 **RED** – Connecting to the network  
+- 🔵 **BLUE** – Network connection established  
+- 🟢 **GREEN** – Message sent to 1NCE OS
+
+
+## ⚡ Using 1NCE Energy Saver
  The demo can send optimized payload using 1NCE Energy saver. To enable this feature, add the following flag to `prj.conf`
 
 ```
 CONFIG_NCE_ENERGY_SAVER=y
 ```
- 
-## Configuration options
+
+When enabled, the device will send compressed messages based on a translation template defined in 1NCE OS portal.
+
+> 💡 **Note:**  
+> Add the template located in `./nce_udp_demo/template/template.json` to the 1NCE OS portal, and enable it for the **UDP protocol** to ensure correct decoding of the compressed payload.
+
+## ⚙️ Configuration Options
+
+The available configuration parameters for the UDP demo:
+
+| Config Option                             | Description                                                                 | Default                 |
+|------------------------------------------|-----------------------------------------------------------------------------|-------------------------|
+| `CONFIG_UDP_SERVER_HOSTNAME`             | UDP server hostname                                                         | `udp.os.1nce.com`       |
+| `CONFIG_UDP_SERVER_PORT`                 | UDP server port number                                                      | `4445`                  |
+| `CONFIG_UDP_DATA_UPLOAD_FREQUENCY_SECONDS` | Interval between UDP transmissions (in seconds)                           | `20`                    |
+| `CONFIG_UDP_PSM_ENABLE`                  | Enable LTE Power Saving Mode (PSM)                                          | `n`                     |
+| `CONFIG_UDP_EDRX_ENABLE`                 | Enable LTE enhanced Discontinuous Reception (eDRX)                          | `n`                     |
+| `CONFIG_UDP_RAI_ENABLE`                  | Enable LTE Release Assistance Indication (RAI)                              | `n`                     |
+
+---
+
+### 🔋 Payload Configuration
+
+Depending on whether the Energy Saver feature is enabled:
+
+- If `CONFIG_NCE_ENERGY_SAVER` is **disabled**:
+
+| Config Option        | Description                                      | Default |
+|----------------------|--------------------------------------------------|---------|
+| `CONFIG_PAYLOAD`     | Message sent to 1NCE IoT Integrator              | `{"text": "Hi, this is a test message!"}` |
+
+- If `CONFIG_NCE_ENERGY_SAVER` is **enabled**:
+
+| Config Option             | Description                                    | Default |
+|---------------------------|------------------------------------------------|---------|
+| `CONFIG_NCE_PAYLOAD_DATA_SIZE` | Payload data size for the Energy Saver template | `10`     |
 
 
-The configuration options for UDP sample are:
+## 🧠 Device Controller
 
-`CONFIG_UDP_SERVER_HOSTNAME` is set to 1NCE endpoint.
+The **Device Controller** allows your device to receive CoAP downlink messages using the 1NCE Management API. It supports sending downlink requests that your device can process in real-time.
 
-`CONFIG_UDP_SERVER_PORT` is set by default to the 1NCE UDP endpoint port 4445.
+📘 More info: [1NCE DevHub – Device Controller](https://help.1nce.com/dev-hub/docs/1nce-os-device-controller)
 
-`CONFIG_UDP_DATA_UPLOAD_FREQUENCY_SECONDS` the interval between UDP packets.
+### 🔁 Sending a Request
 
-`CONFIG_PAYLOAD` Message to send to 1NCE IoT Integrator.
+You can trigger a downlink using the following `curl` command:
 
-`CONFIG_PAYLOAD_DATA_SIZE` Used when 1NCE Energy Saver is enabled to define the payload data size of the translation template.
-
-`CONFIG_UDP_PSM_ENABLE` PSM mode configuration
-   This configuration option, if set, allows the sample to request PSM from the modem or cellular network.
-
-`CONFIG_UDP_EDRX_ENABLE` eDRX mode configuration
-   This configuration option, if set, allows the sample to request eDRX from the modem or cellular network.
-
-`CONFIG_UDP_RAI_ENABLE` RAI configuration
-   This configuration option, if set, allows the sample to request RAI for transmitted messages.
-
-
-## Device Controller
-
-The Device Controller is an API that allows you to interact with devices integrated into the 1NCE API. You can use this API to send requests to devices, and the devices will respond accordingly. For more details you can visit our [DevHub](https://help.1nce.com/dev-hub/docs/1nce-os-device-controller)
-
-### Sending a Request
-
-To send a request to a specific device, you can use the following `curl` command:
 
 ```
 curl -X 'POST' 'https://api.1nce.com/management-api/v1/integrate/devices/<ICCID>/actions/UDP' \
@@ -58,31 +78,67 @@ curl -X 'POST' 'https://api.1nce.com/management-api/v1/integrate/devices/<ICCID>
   "requestMode": "SEND_NOW"
 }'
 ```
-Replace `<ICCID>` with the ICCID (International Mobile Subscriber Identity) of the target device and `<your Access Token>` with the authentication token from [Obtain Access Token](https://help.1nce.com/dev-hub/reference/postaccesstokenpost).
 
-##### Requested Parameters
+Replace:
 
-* `payload`: The data you want to send to the device. This should be provided as a string.
-* `payloadType`: The type of the payload. In this example, it is set to "STRING".
-* `port`: The port number on which the device will receive the request. In the code, this is defined as CONFIG_NCE_RECV_PORT.
-* `requestMode`: The mode of the request. In this example, it is set to "SEND_NOW". There are other possible value like SEND_WHEN_ACTIVE.
+- `<ICCID>` with your SIM's ICCID
+- `<your Access Token>` with your [OAuth token](https://help.1nce.com/dev-hub/reference/postaccesstokenpost)
 
-#### Zephyr Configuration
+---
 
-To handle the incoming request from the 1NCE API, the configuration of certain parameters needed
-* `CONFIG_NCE_RECV_PORT`: This is the port number where your device will listen for incoming requests. It should match the port parameter used in the request (by default is 3000).
-* `CONFIG_NCE_RECEIVE_BUFFER_SIZE` : This is the size of the buffer that will be used to receive the incoming data from the 1NCE API (by default 256).
+### 📩 Request Parameters
 
-#### Zephyr Output
+| Parameter     | Description                                                             | Example           |
+|---------------|-------------------------------------------------------------------------|-------------------|
+| `payload`     | Data to send to the device                                              | `"enable_sensor"` |
+| `payloadType` | Type of payload (`STRING`, `HEX`, etc.)                                 | `"STRING"`        |
+| `port`        | UDP port to receive the message (`CONFIG_NCE_RECV_PORT`)                | `3000`            |
+| `requestMode` | Request mode (`SEND_NOW` or `SEND_WHEN_ACTIVE`)                         | `"SEND_NOW"`      |
 
-When the Zephyr application receives a request from the 1NCE API, it will produce output similar to the following:
+---
+
+## 🔧 Zephyr Device Controller Configuration
+
+To enable and handle downlink messages on your device, use the following configs:
+
+| Config Option                          | Description                                                               | Default  |
+|---------------------------------------|---------------------------------------------------------------------------|----------|
+| `CONFIG_NCE_ENABLE_DEVICE_CONTROLLER` | Enables the device controller feature                                     | `y`      |
+| `CONFIG_NCE_RECV_PORT`                | UDP port to listen for incoming messages                                  | `3000`   |
+| `CONFIG_NCE_RECEIVE_BUFFER_SIZE`      | Buffer size for incoming UDP payloads                                     | `1024`   |
+
+---
+
+## 📤 Zephyr Output Example
+
+When the Zephyr application receives a UDP downlink from the 1NCE API:
 
 ```
-Listening for incoming messages...
-
-Received message: enable_sensor
+[00:00:02.996,978] <inf> [downlink_thread] NCE_UDP_DEMO: Downlink thread started...
+[00:00:02.997,802] <inf> [downlink_thread] NCE_UDP_DEMO: Listening on port: 3000
+[00:00:11.325,683] <inf> [downlink_thread] NCE_UDP_DEMO: Received message: enable_sensor
 ```
 
-## Asking for Help
+## 📦 Ready-to-Flash Firmware for Thingy:91
 
-The most effective communication with our team is through GitHub. Simply create a [new issue](https://github.com/1NCE-GmbH/blueprint-zephyr/issues/new/choose) and select from a range of templates covering bug reports, feature requests, documentation issue, or Gerneral Question.
+We provide a **prebuilt HEX file** for Thingy:91 that you can flash directly to your device for quick testing.  
+No build setup is required — just flash and go.
+
+👉 **Download:** [Thingy:91 Prebuilt HEX](thingy_binaries/zephyr.signed.hex)
+
+> ⏳ **Note:** The firmware is configured with all LTE bands enabled, which may cause a delay of several minutes during the initial network connection while scanning for available bands. This is normal.
+ 
+## 🆘 Need Help?
+
+Open an issue on GitHub for:
+
+- ❗ Bug reports  
+- 🚀 Feature requests  
+- 📝 Documentation issues  
+- ❓ General questions  
+
+👉 [Create a new issue](https://github.com/1NCE-GmbH/blueprint-zephyr/issues/new/choose)
+
+---
+
+Made with 💙 by the 1NCE Team.
