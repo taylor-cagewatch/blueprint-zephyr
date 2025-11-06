@@ -69,7 +69,7 @@ Follow these steps:
    ```yaml
    manifest:
      projects:
-       - name: nce-sdk
+       - name: 1nce-sdk
          url: https://github.com/1NCE-GmbH/1nce-iot-c-sdk
          revision: main
    ```

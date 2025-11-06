@@ -44,6 +44,9 @@
 #include <zephyr/logging/log_ctrl.h>
 #include <modem/lte_lc.h>
 #include <modem/nrf_modem_lib.h>
+#include <modem/at_monitor.h>
+#include <modem/modem_info.h>
+
 #include "nce_iot_c_sdk.h"
 #include <network_interface_zephyr.h>
 
@@ -1011,6 +1014,73 @@ int main( void )
     }
 
     wait_for_network();
+
+
+    static char response[128];
+    /* --- ICCID --- */
+    memset(response, 0, sizeof(response));
+    err = nrf_modem_at_cmd(response, sizeof(response), "AT%%XICCID");
+    if (err) {
+        printk("Failed to read ICCID, err %d\n", err);
+    } else {
+        /* Typical response: "+XICCID: 894450XXXXXXXXXXXX" */
+        char *p = strstr(response, ": ");
+        if (p) {
+            p += 2;  /* skip ": " */
+            for (int i = 0; p[i]; i++) {
+                if (p[i] == '\r' || p[i] == '\n') {
+                    p[i] = '\0';
+                    break;
+                }
+            }
+            printk("ICCID: %s\n", p);
+        } else {
+            printk("Unexpected ICCID response: %s\n", response);
+        }
+    }
+    
+    /* --- PSM Status (AT+CPSMS?) --- */
+    memset(response, 0, sizeof(response));
+    err = nrf_modem_at_cmd(response, sizeof(response), "AT+CPSMS");
+    if (err) {
+        printk("Failed to read PSM status, err %d\n", err);
+    } else {
+        printk("PSM Status: %s\n", response);
+    }
+
+    /* --- eDRX Settings (AT+CEDRXS?) --- */
+    memset(response, 0, sizeof(response));
+    err = nrf_modem_at_cmd(response, sizeof(response), "AT+CEDRXS?");
+    if (err) {
+        printk("Failed to read eDRX settings, err %d\n", err);
+    } else {
+        printk("eDRX Settings: %s\n", response);
+    }
+
+    /* --- Attach Status (AT+CGATT?) --- */
+    memset(response, 0, sizeof(response));
+    err = nrf_modem_at_cmd(response, sizeof(response), "AT+CGATT?");
+    if (err) {
+        printk("Failed to read attach status, err %d\n", err);
+    } else {
+        printk("Attach Status: %s\n", response);
+    }
+
+    /* --- Signal Quality (AT+CESQ) --- */
+    memset(response, 0, sizeof(response));
+    err = nrf_modem_at_cmd(response, sizeof(response), "AT+CESQ");
+    if (err) {
+        printk("Failed to read signal quality, err %d\n", err);
+    } else {
+        printk("Signal Quality: %s\n", response);
+    }
+
+    err = lte_lc_psm_req(true);
+    if (err) {
+        LOG_WRN("Failed to request PSM: %d", err);
+    } else {
+        LOG_INF("PSM request sent, modem will enter PSM when network accepts it.");
+    }
 
     #if defined( CONFIG_NCE_ENABLE_DTLS )
     /* Check for existing PSK on device */

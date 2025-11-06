@@ -8,7 +8,7 @@ menu "1NCE UDP Sample Settings"
 
 config UDP_DATA_UPLOAD_FREQUENCY_SECONDS
 	int "Upload Frequency in Seconds"
-	default 20
+	default 60
 
 config UDP_SERVER_HOSTNAME
 	string "UDP server hostname"
