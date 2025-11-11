@@ -1075,12 +1075,12 @@ int main( void )
         printk("Signal Quality: %s\n", response);
     }
 
-    err = lte_lc_psm_req(true);
-    if (err) {
-        LOG_WRN("Failed to request PSM: %d", err);
-    } else {
-        LOG_INF("PSM request sent, modem will enter PSM when network accepts it.");
-    }
+//    err = lte_lc_psm_req(true);
+//    if (err) {
+//        LOG_WRN("Failed to request PSM: %d", err);
+//    } else {
+//        LOG_INF("PSM request sent, modem will enter PSM when network accepts it.");
+//    }
 
     #if defined( CONFIG_NCE_ENABLE_DTLS )
     /* Check for existing PSK on device */
